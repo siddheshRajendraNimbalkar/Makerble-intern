@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	db "github.com/siddheshRajendraNimbalkar/intern/db/sqlc"
@@ -21,8 +22,9 @@ type loginRequest struct {
 }
 
 type loginResponse struct {
-	AccessToken string `json:"access_token"`
-	UserId      int64  `json:"user_id"`
+	AccessToken string    `json:"access_token"`
+	UserId      int64     `json:"user_id"`
+	ExpiresAt   time.Time `json:"expires_at"`
 }
 
 func (server *Server) registerUser(ctx *gin.Context) {
@@ -59,7 +61,7 @@ func (server *Server) registerUser(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	tokenStr, _, err := maker.CreateToken(user.Username, int64(user.ID), user.Role, server.config.JwtDuration)
+	tokenStr, payload, err := maker.CreateToken(user.Username, int64(user.ID), user.Role, server.config.JwtDuration)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"message": "Error creating token",
@@ -71,6 +73,7 @@ func (server *Server) registerUser(ctx *gin.Context) {
 	resp := loginResponse{
 		AccessToken: tokenStr,
 		UserId:      int64(user.ID),
+		ExpiresAt:   payload.ExpiresAt,
 	}
 	ctx.JSON(http.StatusOK, resp)
 	return
@@ -98,7 +101,7 @@ func (server *Server) loginUser(ctx *gin.Context) {
 		return
 	}
 
-	tokenString, _, err := server.tokenMaker.CreateToken(user.Username, int64(user.ID), user.Role, server.config.JwtDuration)
+	tokenString, payload, err := server.tokenMaker.CreateToken(user.Username, int64(user.ID), user.Role, server.config.JwtDuration)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "could not generate token"})
 		return
@@ -107,6 +110,7 @@ func (server *Server) loginUser(ctx *gin.Context) {
 	resp := loginResponse{
 		AccessToken: tokenString,
 		UserId:      int64(user.ID),
+		ExpiresAt:   payload.ExpiresAt,
 	}
 
 	ctx.JSON(http.StatusOK, resp)

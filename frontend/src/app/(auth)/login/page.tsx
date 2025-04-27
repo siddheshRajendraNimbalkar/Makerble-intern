@@ -28,18 +28,18 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginFormData) => {
     try {
       setLoading(true);
-      const response = await axios.post<{ access_token: string; user_id: string }>(
+      const response = await axios.post<{ access_token: string; user_id: string,expires_at: string }>(
         'http://localhost:8080/user/sign-in',
         data
       );
 
-      const { access_token, user_id } = response.data;
+      const { access_token, user_id, expires_at} = response.data;
 
       localStorage.setItem('access_token', access_token);
       localStorage.setItem('user_id', user_id);
-
+      localStorage.setItem('token_expiry', expires_at)
       toast.success('Login successful.');
-      router.push('/dashboard'); 
+      router.push('/'); 
     } catch (err: any) {
       toast.error(err?.response?.data?.error || 'Something went wrong. Try again.');
     } finally {

@@ -15,7 +15,7 @@ type createPatientRequest struct {
 	Age      int32  `json:"age" binding:"required,gte=0,lte=150"`
 	Gender   string `json:"gender" binding:"required,oneof=male female other"`
 	Address  string `json:"address" binding:"omitempty,max=200"`
-	Phone    string `json:"phone" binding:"omitempty,e164"`
+	Phone    string `json:"phone" binding:"omitempty,len=10"`
 	Status   string `json:"status" binding:"required,oneof=admitted discharged 'under observation'"`
 }
 
